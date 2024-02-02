@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrower Processing Calculator</title>
+    <style>
+        body {
+            background-color: #1c1c1e; /* Dark gray background */
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #ff9500; /* iPhone orange color */
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        label {
+            color: #ff9500;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: calc(100% - 16px);
+            font-size: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ff9500;
+            background-color: #323238; /* Dark gray color for input fields and buttons */
+            color: white;
+        }
+
+        /* Adjusted size for the amount and date input fields */
+        #borrowerInput, #selectedDate {
+            max-width: 150px; /* Maximum width for a small input */
+        }
+
+        .calculator-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .calculator-button {
+            background-color: #ff9500; /* iPhone orange color */
+            color: black;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ff9500;
+            border-radius: 5px;
+        }
+
+        .calculator-button:hover {
+            background-color: #e85d00; /* Slightly darker shade on hover */
+        }
+
+        table {
+            width: 100%;
+            overflow-x: auto;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 10px;
+            background-color: #323238; /* Dark gray color for the table */
+            color: white;
+        }
+
+        th, td {
+            border: 1px solid #ff9500;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ff9500;
+            color: black;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            font-size: 10px;
+        }
+
+        li {
+            margin-bottom: 3px;
+        }
+
+        .calculator-display {
+            grid-column: span 1;
+            padding: 8px;
+            background-color: #323238; /* Dark gray color for calculator display */
+            color: white;
+            text-align: right;
+            font-size: 16px;
+            border: none;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ff9500;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .delete-borrower-button {
+            background-color: #ff3b30; /* Red color for delete borrower button */
+            color: white;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 10px;
+            border-radius: 5px;
+            margin-top: 5px; /* Adjusted margin */
+        }
+
+        .delete-borrower-button:hover {
+            background-color: #cc2e24; /* Slightly darker shade on hover */
+        }
+
+        /* Adjusted style for the "Add Payment" button */
+        .add-payment-button {
+            background-color: #007aff; /* Blue color for better visibility */
+            color: white;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 10px;
+            border-radius: 5px;
+        }
+
+        .add-payment-button:hover {
+            background-color: #0056b3; /* Slightly darker shade on hover */
+        }
+
+        /* Updated style for the "Remaining Balance" column title */
+        .remaining-balance {
+            color: black; /* Keep the title black */
+        }
+
+        /* Updated style for the numeric value of "Remaining Balance" */
+        .remaining-balance-value {
+            color: white; /* White color for the numeric value */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Borrower Processing Calculator</h1>
+
+    <div class="calculator-container">
+        <label for="borrowerInput">Amount:</label>
+        <input type="number" id="borrowerInput" placeholder="Amount">
+
+        <label for="selectedDate">Date:</label>
+        <input type="date" id="selectedDate">
+
+        <button class="calculator-button" onclick="processPayment()">Process</button>
+    </div>
+
+    <div class="calculator-display" id="calculatorDisplay"></div>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount Paid</th>
+                <th class="remaining-balance">Remaining Balance</th>
+                <th>Payments</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="resultTableBody">
+            <!-- Results will be displayed here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Load saved data from localStorage
+        window.onload = function() {
+            loadSavedData();
+        };
+
+        function processPayment() {
+            var amount = parseFloat(document.getElementById("borrowerInput").value);
+            var date = document.getElementById("selectedDate").value;
+
+            var resultTableBody = document.getElementById("resultTableBody");
+            var newRow = resultTableBody.insertRow(-1);
+
+            var cell1 = newRow.insertCell(0);
+            var cell2 = newRow.insertCell(1);
+            var cell3 = newRow.insertCell(2);
+            var cell4 = newRow.insertCell(3);
+            var cell5 = newRow.insertCell(4);
+
+            cell1.innerHTML = date;
+            cell2.innerHTML = "₱" + amount.toFixed(2); // Display amount with Philippine currency format and two decimal points
+            cell3.innerHTML = "₱" + amount.toFixed(2); // Display amount with Philippine currency format and two decimal points
+            cell3.classList.add("remaining-balance"); // Add class for styling
+            cell4.innerHTML = "<ul id='paymentsList'></ul>";
+
+            var addPaymentButton = document.createElement("button");
+            addPaymentButton.innerHTML = "Add Payment";
+            addPaymentButton.className = "add-payment-button"; // Add class for styling
+            addPaymentButton.onclick = function () {
+                addPayment(newRow);
+            };
+            cell4.appendChild(addPaymentButton);
+
+            var deleteButton = document.createElement("button");
+            deleteButton.innerHTML = "Delete Borrower";
+            deleteButton.className = "delete-borrower-button";
+            deleteButton.onclick = function () {
+                resultTableBody.removeChild(newRow);
+                saveData();
+            };
+            cell5.appendChild(deleteButton);
+
+            saveData();
+        }
+
+        function addPayment(row) {
+            var amount = prompt("Enter payment amount:");
+            var date = document.getElementById("selectedDate").value;
+
+            if (amount === null || amount === "") {
+                alert("Payment amount is required");
+                return;
+            }
+
+            var paymentsList = row.cells[3].querySelector("#paymentsList");
+
+            var listItem = document.createElement("li");
+            listItem.innerHTML = `${date}: ₱${parseFloat(amount).toFixed(2)} <button onclick="deletePayment(this)">Delete</button>`;
+            paymentsList.appendChild(listItem);
+
+            updateRemainingBalance(row);
+            saveData();
+        }
+
+        function deletePayment(button) {
+            var listItem = button.parentNode;
+            listItem.parentNode.removeChild(listItem);
+            updateRemainingBalance(listItem.parentNode.parentNode.parentNode);
+            saveData();
+        }
+
+        function updateRemainingBalance(row) {
+            var initialAmount = parseFloat(row.cells[2].innerHTML.replace("₱", ""));
+            var paymentsList = row.cells[3].querySelector("#paymentsList");
+            var totalPayments = 0;
+
+            paymentsList.querySelectorAll("li").forEach(function (paymentItem) {
+                var paymentAmount = parseFloat(paymentItem.innerText.split(":")[1].trim().replace("₱", ""));
+                totalPayments += paymentAmount;
+            });
+
+            var remainingBalanceCell = row.cells[2];
+            remainingBalanceCell.innerHTML = "₱" + (initialAmount - totalPayments).toFixed(2);
+
+            // Add class to the numeric value for styling
+            remainingBalanceCell.innerHTML = `<span class="remaining-balance-value">₱${(initialAmount - totalPayments).toFixed(2)}</span>`;
+        }
+
+        function saveData() {
+            var dataToSave = [];
+            var resultTableBody = document.getElementById("resultTableBody");
+
+            for (var i = 0; i < resultTableBody.rows.length; i++) {
+                var rowData = [];
+                var cells = resultTableBody.rows[i].cells;
+
+                for (var j = 0; j < cells.length - 1; j++) {
+                    rowData.push(cells[j].innerHTML);
+                }
+
+                dataToSave.push(rowData);
+            }
+
+            localStorage.setItem("borrowerData", JSON.stringify(dataToSave));
+        }
+
+        function loadSavedData() {
+            var savedData = localStorage.getItem("borrowerData");
+
+            if (savedData) {
+                var parsedData = JSON.parse(savedData);
+                var resultTableBody = document.getElementById("resultTableBody");
+
+                parsedData.forEach(function (rowData) {
+                    var newRow = resultTableBody.insertRow(-1);
+
+                    for (var i = 0; i < rowData.length; i++) {
+                        var cell = newRow.insertCell(i);
+                        cell.innerHTML = rowData[i];
+                    }
+
+                    var addPaymentButton = document.createElement("button");
+                    addPaymentButton.innerHTML = "Add Payment";
+                    addPaymentButton.onclick = function () {
+                        addPayment(newRow);
+                    };
+                    newRow.cells[3].appendChild(addPaymentButton);
+
+                    var deleteButton = document.createElement("button");
+                    deleteButton.innerHTML = "Delete Borrower";
+                    deleteButton.className = "delete-borrower-button";
+                    deleteButton.onclick = function () {
+                        resultTableBody.removeChild(newRow);
+                        saveData();
+                    };
+                    newRow.cells[4].appendChild(deleteButton);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
